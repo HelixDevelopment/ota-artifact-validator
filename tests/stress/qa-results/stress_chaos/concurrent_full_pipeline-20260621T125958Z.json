@@ -1,0 +1,9 @@
+{
+  "goroutines": 50,
+  "iters": 1000,
+  "mismatches": 0,
+  "p50_ns": 545500,
+  "p95_ns": 1279541,
+  "p99_ns": 3235708,
+  "test": "TestStressConcurrentFullPipeline"
+}

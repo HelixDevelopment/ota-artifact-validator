@@ -1,0 +1,10 @@
+{
+  "N": 200,
+  "accepted": 0,
+  "failed": 0,
+  "p50_ns": 334,
+  "p95_ns": 1625,
+  "p99_ns": 2167,
+  "rejected": 200,
+  "test": "TestStressSustainedFullPipeline"
+}
