@@ -45,6 +45,12 @@ type TargetPolicy interface {
 // tolerated. The returned digest is the lowercase-hex SHA-256 over r so the
 // caller can persist it for S6 / the release record.
 func ValidateHash(r io.Reader, expectedHashFile string) (Verdict, string) {
+	// If the reader supports seeking (e.g. *bytes.Reader), rewind to position 0
+	// so the same reader can be validated multiple times (stress/chaos tests reuse
+	// Input structs whose io.Reader is consumed after one Validate call).
+	if seeker, ok := r.(io.Seeker); ok {
+		_, _ = seeker.Seek(0, io.SeekStart)
+	}
 	if strings.TrimSpace(expectedHashFile) == "" {
 		return reject(StageHash, RejectHashFileMissing, "hash file is empty or absent"), ""
 	}
