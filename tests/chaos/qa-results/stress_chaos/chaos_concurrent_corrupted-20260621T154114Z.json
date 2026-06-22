@@ -1,6 +1,0 @@
-{
-  "accepted": 0,
-  "goroutines": 50,
-  "panics": 0,
-  "test": "TestChaosConcurrentCorruptedArtifacts"
-}

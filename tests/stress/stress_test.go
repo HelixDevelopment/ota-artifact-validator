@@ -1,4 +1,3 @@
-//
 // Exercises the full S2..S6 pipeline and individual stage helpers under
 // sustained concurrent load with real cryptographic primitives, recording
 // p50/p95/p99 latency and categorised outcomes as captured evidence.
@@ -60,6 +59,7 @@ func percentiles(durations []time.Duration) (p50, p95, p99 time.Duration) {
 	p99 = sorted[n*99/100]
 	return
 }
+
 // genSHA256 returns a random lowercase-hex SHA-256 digest.
 func genSHA256() string {
 	const hexd = "0123456789abcdef"
@@ -69,6 +69,7 @@ func genSHA256() string {
 	}
 	return string(b)
 }
+
 // signedFixture returns a self-consistent, fully-valid signed artifact.
 func signedFixture(t testing.TB) (otavalidator.Input, otavalidator.Result) {
 	t.Helper()
@@ -104,6 +105,7 @@ func signedFixture(t testing.TB) (otavalidator.Input, otavalidator.Result) {
 	res := otavalidator.Validate(in)
 	return in, res
 }
+
 // ---------------------------------------------------------------------------
 // TestStressSustainedFullPipeline
 //
@@ -138,14 +140,14 @@ func TestStressSustainedFullPipeline(t *testing.T) {
 	}
 	p50, p95, p99 := percentiles(durations)
 	record := map[string]interface{}{
-		"test":      "TestStressSustainedFullPipeline",
-		"N":         N,
-		"accepted":  accepted,
-		"rejected":  rejected,
-		"failed":    failed,
-		"p50_ns":    p50.Nanoseconds(),
-		"p95_ns":    p95.Nanoseconds(),
-		"p99_ns":    p99.Nanoseconds(),
+		"test":     "TestStressSustainedFullPipeline",
+		"N":        N,
+		"accepted": accepted,
+		"rejected": rejected,
+		"failed":   failed,
+		"p50_ns":   p50.Nanoseconds(),
+		"p95_ns":   p95.Nanoseconds(),
+		"p99_ns":   p99.Nanoseconds(),
 	}
 	ev, _ := json.MarshalIndent(record, "", "  ")
 	writeEvidence(t, "sustained_full_pipeline", ev)
@@ -155,6 +157,7 @@ func TestStressSustainedFullPipeline(t *testing.T) {
 		t.Error("stress mix must contain both accepted and rejected outcomes")
 	}
 }
+
 // ---------------------------------------------------------------------------
 // TestStressConcurrentFullPipeline
 //
@@ -194,13 +197,13 @@ func TestStressConcurrentFullPipeline(t *testing.T) {
 	wg.Wait()
 	p50, p95, p99 := percentiles(results)
 	record := map[string]interface{}{
-		"test":        "TestStressConcurrentFullPipeline",
-		"goroutines":  goroutines,
-		"iters":       len(results),
-		"mismatches":  mismatches,
-		"p50_ns":      p50.Nanoseconds(),
-		"p95_ns":      p95.Nanoseconds(),
-		"p99_ns":      p99.Nanoseconds(),
+		"test":       "TestStressConcurrentFullPipeline",
+		"goroutines": goroutines,
+		"iters":      len(results),
+		"mismatches": mismatches,
+		"p50_ns":     p50.Nanoseconds(),
+		"p95_ns":     p95.Nanoseconds(),
+		"p99_ns":     p99.Nanoseconds(),
 	}
 	ev, _ := json.MarshalIndent(record, "", "  ")
 	writeEvidence(t, "concurrent_full_pipeline", ev)
@@ -210,6 +213,7 @@ func TestStressConcurrentFullPipeline(t *testing.T) {
 		t.Fatal("concurrent verdicts differed from serial baseline")
 	}
 }
+
 // ---------------------------------------------------------------------------
 // TestStressBoundaryStageHelpers
 //

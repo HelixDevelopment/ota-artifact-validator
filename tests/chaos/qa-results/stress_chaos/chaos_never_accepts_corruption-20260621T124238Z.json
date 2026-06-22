@@ -1,7 +1,0 @@
-{
-  "accepted": 0,
-  "evidence": "all rejected, no panics",
-  "panics": 0,
-  "test": "TestChaosNeverAcceptsCorruption",
-  "total": 60
-}

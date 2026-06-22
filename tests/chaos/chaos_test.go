@@ -285,7 +285,7 @@ func TestChaosMetadataCorruption(t *testing.T) {
 	in, _ := makeFixture(t, payload)
 
 	type metaCase struct {
-		name   string
+		name    string
 		corrupt func(m *otaprotocol.ArtifactMeta)
 	}
 
@@ -331,7 +331,7 @@ func TestChaosNeverAcceptsCorruption(t *testing.T) {
 	}
 
 	corruptions := []struct {
-		name   string
+		name    string
 		corrupt func(ci *otavalidator.Input, payload []byte)
 	}{
 		{"hash-mismatch", func(ci *otavalidator.Input, payload []byte) {
@@ -380,11 +380,11 @@ func TestChaosNeverAcceptsCorruption(t *testing.T) {
 		t.Fatalf("INVARIANT VIOLATED: %d/%d corrupted artifacts accepted", accepted, total)
 	}
 	record := map[string]interface{}{
-		"test":      "TestChaosNeverAcceptsCorruption",
-		"total":     total,
-		"accepted":  accepted,
-		"panics":    0,
-		"evidence":  "all rejected, no panics",
+		"test":     "TestChaosNeverAcceptsCorruption",
+		"total":    total,
+		"accepted": accepted,
+		"panics":   0,
+		"evidence": "all rejected, no panics",
 	}
 	ev, _ := json.MarshalIndent(record, "", "  ")
 	writeChaosEvidence(t, "chaos_never_accepts_corruption", ev)
