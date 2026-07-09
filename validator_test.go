@@ -299,12 +299,15 @@ func TestValidateHash(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			v, got := ValidateHash(bytes.NewReader(tc.body), tc.hashFile)
+			v, got, n := ValidateHash(bytes.NewReader(tc.body), tc.hashFile)
 			if v.Passed != tc.wantPass {
 				t.Fatalf("Passed=%v want %v (%s)", v.Passed, tc.wantPass, v)
 			}
 			if tc.wantPass && got != digest {
 				t.Fatalf("digest=%q want %q", got, digest)
+			}
+			if tc.wantPass && n != int64(len(tc.body)) {
+				t.Fatalf("byte count=%d want %d", n, len(tc.body))
 			}
 			if !tc.wantPass && v.Code != tc.wantCode {
 				t.Fatalf("code=%q want %q", v.Code, tc.wantCode)
@@ -438,26 +441,30 @@ func TestValidateMetadata(t *testing.T) {
 	}
 
 	t.Run("valid with matching digest", func(t *testing.T) {
-		if v := ValidateMetadata(good, digest); !v.Passed {
+		if v := ValidateMetadata(good, digest, 7); !v.Passed {
 			t.Fatalf("want pass, got %s", v)
 		}
 	})
 	t.Run("valid skip cross-check", func(t *testing.T) {
-		if v := ValidateMetadata(good, ""); !v.Passed {
+		// -1 is ValidateHash's "not measured" sentinel: it is the value that
+		// skips the size cross-check. A measured 0 is NOT a skip sentinel (see
+		// TestValidateMetadataSizeCrossCheck / TestS6ZeroByteArtifactForgedSizeRejected)
+		// — it enforces meta.Size == 0.
+		if v := ValidateMetadata(good, "", -1); !v.Passed {
 			t.Fatalf("want pass, got %s", v)
 		}
 	})
 	t.Run("incomplete meta", func(t *testing.T) {
 		bad := good
 		bad.Board = ""
-		v := ValidateMetadata(bad, digest)
+		v := ValidateMetadata(bad, digest, 7)
 		if v.Passed || v.Code != RejectMetadataIncomplete {
 			t.Fatalf("want incomplete reject, got %s", v)
 		}
 	})
 	t.Run("inconsistent digest", func(t *testing.T) {
 		other := sha256.Sum256([]byte("other"))
-		v := ValidateMetadata(good, hex.EncodeToString(other[:]))
+		v := ValidateMetadata(good, hex.EncodeToString(other[:]), 7)
 		if v.Passed || v.Code != RejectMetadataInconsistent {
 			t.Fatalf("want inconsistent reject, got %s", v)
 		}

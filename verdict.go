@@ -64,6 +64,7 @@ const (
 	// S6 — metadata sanity.
 	RejectMetadataIncomplete   RejectCode = "S6_METADATA_INCOMPLETE"
 	RejectMetadataInconsistent RejectCode = "S6_METADATA_INCONSISTENT"
+	RejectMetadataSizeMismatch RejectCode = "S6_METADATA_SIZE_MISMATCH"
 )
 
 // Verdict is the typed outcome of a single stage (or of the whole pipeline).

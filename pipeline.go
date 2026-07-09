@@ -61,7 +61,7 @@ func Validate(in Input) Result {
 	var res Result
 
 	// S2 — SHA-256 vs hash file.
-	hashVerdict, digest := ValidateHash(in.Artifact, in.HashFile)
+	hashVerdict, digest, actualSize := ValidateHash(in.Artifact, in.HashFile)
 	res.ComputedSHA256 = digest
 	res.Verdicts = append(res.Verdicts, hashVerdict)
 	if hashVerdict.IsReject() {
@@ -93,8 +93,8 @@ func Validate(in Input) Result {
 		return res
 	}
 
-	// S6 — metadata sanity + consistency with the S2 digest.
-	metaVerdict := ValidateMetadata(in.Meta, digest)
+	// S6 — metadata sanity + consistency with the S2 digest and byte count.
+	metaVerdict := ValidateMetadata(in.Meta, digest, actualSize)
 	res.Verdicts = append(res.Verdicts, metaVerdict)
 	res.Final = metaVerdict
 	return res

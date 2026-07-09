@@ -207,8 +207,8 @@ func TestStressConcurrentStageHelpers(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			for n := 0; n < iters; n++ {
-				v, digest := ValidateHash(bytes.NewReader(a.payload), a.hashFile)
-				if !v.Passed || digest != a.digest {
+				v, digest, nBytes := ValidateHash(bytes.NewReader(a.payload), a.hashFile)
+				if !v.Passed || digest != a.digest || nBytes != int64(len(a.payload)) {
 					atomic.AddInt64(&badHash, 1)
 				}
 				if sv := ValidateSignature(a.digest, a.pub, a.sig); !sv.Passed {
@@ -367,14 +367,14 @@ func TestStressBoundaryInputs(t *testing.T) {
 			}
 		}},
 		{"empty-hashfile", func(t *testing.T) {
-			if v, _ := ValidateHash(bytes.NewReader(a.payload), ""); v.Passed || v.Code != RejectHashFileMissing {
+			if v, _, _ := ValidateHash(bytes.NewReader(a.payload), ""); v.Passed || v.Code != RejectHashFileMissing {
 				t.Fatalf("empty hashfile: got %s", v)
 			}
 		}},
 		{"empty-reader-with-hashfile", func(t *testing.T) {
 			// Empty payload hashed against the digest of a non-empty payload =
 			// mismatch, never a panic.
-			if v, _ := ValidateHash(bytes.NewReader(nil), a.hashFile); v.Passed || v.Code != RejectHashMismatch {
+			if v, _, _ := ValidateHash(bytes.NewReader(nil), a.hashFile); v.Passed || v.Code != RejectHashMismatch {
 				t.Fatalf("empty reader: got %s", v)
 			}
 		}},

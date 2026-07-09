@@ -239,13 +239,13 @@ func TestStressBoundaryStageHelpers(t *testing.T) {
 	}
 	cases := []helperCase{
 		{"empty-hashfile", func(t *testing.T) {
-			v, _ := otavalidator.ValidateHash(bytes.NewReader(payload), "")
+			v, _, _ := otavalidator.ValidateHash(bytes.NewReader(payload), "")
 			if v.Passed || v.Code != otavalidator.RejectHashFileMissing {
 				t.Fatalf("expected RejectHashFileMissing, got %s", v)
 			}
 		}},
 		{"empty-reader", func(t *testing.T) {
-			v, _ := otavalidator.ValidateHash(bytes.NewReader(nil), digest+"  x")
+			v, _, _ := otavalidator.ValidateHash(bytes.NewReader(nil), digest+"  x")
 			if v.Passed || v.Code != otavalidator.RejectHashMismatch {
 				t.Fatalf("expected RejectHashMismatch, got %s", v)
 			}

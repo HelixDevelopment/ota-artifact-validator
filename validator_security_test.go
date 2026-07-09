@@ -220,12 +220,15 @@ func TestParseHashFileEmptyFields(t *testing.T) {
 // filename (no digest) is rejected as malformed — the first field is taken as
 // the candidate digest and must fail the SHA-256 contract.
 func TestValidateHashFilenameOnlyRejected(t *testing.T) {
-	v, got := ValidateHash(bytes.NewReader([]byte("abc")), "ota.zip\n")
+	v, got, n := ValidateHash(bytes.NewReader([]byte("abc")), "ota.zip\n")
 	if !v.IsReject() || v.Code != RejectHashFileMalformed {
 		t.Fatalf("filename-only hash file: %s (want S2 malformed reject)", v)
 	}
 	if got != "" {
 		t.Fatalf("rejected hash returned a digest %q, want empty", got)
+	}
+	if n != -1 {
+		t.Fatalf("rejected hash returned byte count %d, want -1 (nothing measured on this early-reject path; 0 is reserved for a measured-empty artifact)", n)
 	}
 }
 
@@ -235,12 +238,15 @@ func TestValidateHashFilenameOnlyRejected(t *testing.T) {
 func TestValidateHashReaderError(t *testing.T) {
 	sum := sha256.Sum256([]byte("anything"))
 	digest := hex.EncodeToString(sum[:])
-	v, got := ValidateHash(errReader{}, digest)
+	v, got, n := ValidateHash(errReader{}, digest)
 	if !v.IsReject() || v.Code != RejectHashMismatch {
 		t.Fatalf("reader error: %s (want S2 mismatch reject)", v)
 	}
 	if got != "" {
 		t.Fatalf("errored hash returned digest %q, want empty", got)
+	}
+	if n != 0 {
+		t.Fatalf("errored hash returned byte count %d, want 0 (errReader fails on the first Read)", n)
 	}
 }
 
