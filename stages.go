@@ -70,6 +70,15 @@ func ValidateHash(r io.Reader, expectedHashFile string) (Verdict, string, int64)
 	if !ok {
 		return reject(StageHash, RejectHashFileMalformed, "hash file does not contain a 64-char lowercase hex SHA-256"), "", -1
 	}
+	// A nil Artifact reader is the zero value of the exported Input.Artifact
+	// field (the common "forgot to wire the upload body" caller mistake).
+	// io.Copy panics when handed a genuinely nil io.Reader interface value
+	// (it calls Read through a nil method table), so this MUST be rejected
+	// as an ordinary S2 verdict before the reader is touched, exactly like
+	// every other malformed-input path in this stage.
+	if r == nil {
+		return reject(StageHash, RejectHashMismatch, "artifact reader is nil: no bytes to hash"), "", -1
+	}
 
 	h := sha256.New()
 	n, err := io.Copy(h, r)
