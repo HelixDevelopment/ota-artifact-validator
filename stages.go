@@ -5,11 +5,18 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"io"
 	"strings"
 
 	otaprotocol "github.com/HelixDevelopment/ota-protocol"
 )
+
+// maxDeclaredVersionLen mirrors the 255-char bound otaprotocol.ArtifactMeta's
+// ValidateArtifactMeta enforces on Version (S6). It is duplicated here (rather
+// than imported) because otaprotocol does not export the limit as a constant;
+// keep the two literals in agreement if either changes.
+const maxDeclaredVersionLen = 255
 
 // VersionComparator orders two version identifiers. It returns a negative
 // number if a < b, zero if a == b, and a positive number if a > b, plus an
@@ -140,7 +147,25 @@ func ValidateSignature(digestHex string, pubKey ed25519.PublicKey, sig []byte) V
 // latest published version supplied by the caller (the prior-version lookup);
 // an empty currentVersion means no prior release exists, which passes. cmp
 // orders the versions; if nil, CompareDotted is used.
+//
+// The declared-length bound below MUST run FIRST, before any TrimSpace scan or
+// comparator/parse call. S4 (this stage) runs BEFORE S6 (ValidateMetadata →
+// otaprotocol.ValidateArtifactMeta), which is the only other place a
+// Meta.Version length bound was enforced. Without an early bound here, an
+// attacker-supplied oversized declared version (e.g. a multi-megabyte dotted
+// string) reaches the default comparator's CompareDotted → parseDotted, which
+// allocates proportional to the raw string length (strings.Split's slice of
+// string headers, plus make([]int, len(parts))) UNCONDITIONALLY, before S6's
+// 255-char cap ever runs — a memory/CPU amplification keyed off a field this
+// very package (via otaprotocol) already bounds, just too late in the
+// pipeline. Checking len(declared) is O(1) (Go strings carry their length),
+// so this guard adds no cost to the common well-formed case while rejecting
+// the amplification input before any proportional work happens.
 func ValidateVersion(declared, currentVersion string, cmp VersionComparator) Verdict {
+	if len(declared) > maxDeclaredVersionLen {
+		return reject(StageVersion, RejectVersionUnparseable, fmt.Sprintf(
+			"declared version exceeds maximum length (%d chars, max %d)", len(declared), maxDeclaredVersionLen))
+	}
 	if strings.TrimSpace(declared) == "" {
 		return reject(StageVersion, RejectVersionUnparseable, "declared version is empty")
 	}
