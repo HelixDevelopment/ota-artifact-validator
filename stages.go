@@ -12,10 +12,11 @@ import (
 	otaprotocol "github.com/HelixDevelopment/ota-protocol"
 )
 
-// maxDeclaredVersionLen mirrors the 255-char bound otaprotocol.ArtifactMeta's
-// ValidateArtifactMeta enforces on Version (S6). It is duplicated here (rather
-// than imported) because otaprotocol does not export the limit as a constant;
-// keep the two literals in agreement if either changes.
+// maxDeclaredVersionLen is the 255-char guard enforced by this package's
+// ValidateVersion (S4), BEFORE otaprotocol.ValidateArtifactMeta (S6) runs.
+// Do NOT assume the protocol layer enforces a length bound — it only checks
+// for empty. The real length guard lives here in the pipeline. Keep this
+// literal in agreement with any length cap added upstream in otaprotocol.
 const maxDeclaredVersionLen = 255
 
 // VersionComparator orders two version identifiers. It returns a negative
